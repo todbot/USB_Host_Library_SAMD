@@ -252,36 +252,38 @@ uint32_t USBHub::CheckHubStatus() {
         if(rcode)
                 return rcode;
 
-        //if (buf[0] & 0x01) // Hub Status Change
-        //{
-        //        pUsb->PrintHubStatus(addr);
-        //        rcode = GetHubStatus(1, 0, 1, 4, buf);
-        //        if (rcode)
-        //        {
-        //        	USB_HOST_SERIAL.print("GetHubStatus Error");
-        //        	USB_HOST_SERIAL.println(rcode, HEX);
-        //        	return rcode;
-        //        }
-        //}
-        for(uint32_t port = 1, mask = 0x02; port < 8; mask <<= 1, port++) {
-                if(buf[0] & mask) {
-                        HubEvent evt;
-                        evt.bmEvent = 0;
+        if(!rcode) {
+                //if (buf[0] & 0x01) // Hub Status Change
+                //{
+                //        pUsb->PrintHubStatus(addr);
+                //        rcode = GetHubStatus(1, 0, 1, 4, buf);
+                //        if (rcode)
+                //        {
+                //        	USB_HOST_SERIAL.print("GetHubStatus Error");
+                //        	USB_HOST_SERIAL.println(rcode, HEX);
+                //        	return rcode;
+                //        }
+                //}
+                for(uint32_t port = 1, mask = 0x02; port < 8; mask <<= 1, port++) {
+                        if(buf[0] & mask) {
+                                HubEvent evt;
+                                evt.bmEvent = 0;
 
-                        rcode = GetPortStatus(port, 4, evt.evtBuff);
+                                rcode = GetPortStatus(port, 4, evt.evtBuff);
 
-                        if(rcode)
-                                continue;
+                                if(rcode)
+                                        continue;
 
-                        rcode = PortStatusChange(port, evt);
+                                rcode = PortStatusChange(port, evt);
 
-                        if(rcode == HUB_ERROR_PORT_HAS_BEEN_RESET)
-                                return 0;
+                                if(rcode == HUB_ERROR_PORT_HAS_BEEN_RESET)
+                                        return 0;
 
-                        if(rcode)
-                                return rcode;
-                }
-        } // for
+                                if(rcode)
+                                        return rcode;
+                        }
+                } // for
+        }
 
         for(uint32_t port = 1; port <= bNbrPorts; port++) {
                 HubEvent evt;
