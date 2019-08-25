@@ -666,6 +666,8 @@ again:
     uint32_t rcode = devConfig[driver]->ConfigureDevice(parent, port, lowspeed);
     if(rcode == USB_ERROR_CONFIG_REQUIRES_ADDITIONAL_RESET) {
         ResetPort(parent, port);
+    } else if(rcode == USB_DEV_CONFIG_ERROR_DEVICE_NOT_SUPPORTED) {
+        return rcode;
     } else if(rcode != 0x00/*hrJERR*/ && retries < 3) { // Some devices returns this when plugged in - trying to initialize the device again usually works
         delay(100);
         retries++;
@@ -675,9 +677,11 @@ again:
 
     rcode = devConfig[driver]->Init(parent, port, lowspeed);
     if(rcode != 0x00/*hrJERR*/ && retries < 3) { // Some devices returns this when plugged in - trying to initialize the device again usually works
-        delay(100);
-        retries++;
-        goto again;
+        if(rcode != USB_DEV_CONFIG_ERROR_DEVICE_NOT_SUPPORTED) {
+            delay(100);
+            retries++;
+            goto again;
+        }
     }
     if(rcode) {
         // Issue a bus reset, because the device may be in a limbo state
