@@ -217,6 +217,15 @@ Fail:
 }
 
 uint32_t USBHub::Release() {
+        UsbDeviceAddress a;
+        a.devAddress = 0;
+        a.bmHub = 0;
+        a.bmParent = bAddress;
+        for (uint8_t j = 1; j <= bNbrPorts; j++) {
+                a.bmAddress = j;
+                pUsb->ReleaseDevice(a.devAddress);
+        }
+
         pUsb->GetAddressPool().FreeAddress(bAddress);
 
         if(bAddress == 0x41)
@@ -248,9 +257,6 @@ uint32_t USBHub::CheckHubStatus() {
         uint16_t read = 1;
 
         rcode = pUsb->inTransfer(bAddress, 1, &read, buf);
-
-        if(rcode)
-                return rcode;
 
         if(!rcode) {
                 //if (buf[0] & 0x01) // Hub Status Change
@@ -311,11 +317,11 @@ uint32_t USBHub::CheckHubStatus() {
         return 0;
 }
 
-void USBHub::ResetHubPort(uint32_t port) {
+uint32_t USBHub::ResetHubPort(uint32_t port) {
         HubEvent evt;
         evt.bmEvent = 0;
-        uint8_t rcode;
-
+        uint32_t rcode;
+        
         ClearPortFeature(HUB_FEATURE_C_PORT_ENABLE, port, 0);
         ClearPortFeature(HUB_FEATURE_C_PORT_CONNECTION, port, 0);
         SetPortFeature(HUB_FEATURE_PORT_RESET, port, 0);
@@ -323,15 +329,17 @@ void USBHub::ResetHubPort(uint32_t port) {
 
         for(int i = 0; i < 3; i++) {
                 rcode = GetPortStatus(port, 4, evt.evtBuff);
-                if(rcode) break; // Some kind of error, bail.
-                if(evt.bmEvent == bmHUB_PORT_EVENT_RESET_COMPLETE || evt.bmEvent == bmHUB_PORT_EVENT_LS_RESET_COMPLETE) {
-                        break;
+                if (!rcode) {
+                        if(evt.bmEvent == bmHUB_PORT_EVENT_RESET_COMPLETE || evt.bmEvent == bmHUB_PORT_EVENT_LS_RESET_COMPLETE) {
+                                break;
+                        }
                 }
                 delay(100); // simulate polling.
         }
         ClearPortFeature(HUB_FEATURE_C_PORT_RESET, port, 0);
         ClearPortFeature(HUB_FEATURE_C_PORT_CONNECTION, port, 0);
         delay(20);
+        return rcode;
 }
 
 uint32_t USBHub::PortStatusChange(uint32_t port, HubEvent &evt) {
@@ -373,9 +381,9 @@ uint32_t USBHub::PortStatusChange(uint32_t port, HubEvent &evt) {
                         ClearPortFeature(HUB_FEATURE_C_PORT_CONNECTION, port, 0);
 
                         USBTRACE("Hub port reset complete\r\n");
-                        
+
                         delay(20);
-                        
+
                         pUsb->Configuring(bAddress, port, (evt.bmStatus & bmHUB_PORT_STATUS_PORT_LOW_SPEED));
                         bResetInitiated = false;
                         break;
