@@ -699,14 +699,14 @@ void USBHost::ResetPort(uint32_t parent, uint32_t port) {
         delay(102); // delay 102ms, compensate for clock inaccuracy.
 	} else {
         uint32_t rcode = USB_ERROR_ADDRESS_NOT_FOUND_IN_POOL;
-		for (uint8_t i = 0; i < USB_NUMDEVICES; i++) { 
-			if (devConfig[i] && devConfig[i]->GetAddress() == parent) {
+        for (uint8_t i = 0; i < USB_NUMDEVICES; i++) { 
+            if (devConfig[i] && devConfig[i]->GetAddress() == parent) {
                 rcode = devConfig[i]->ResetHubPort(port);
                 delay(102); // delay 102ms, compensate for clock inaccuracy.
                 if (!rcode) {
                     return;
                 }
-			}
+            }
         }
         USBTRACE2("USBHost::ResetPort: failed, rcode: ", rcode);
         // release device on error
@@ -715,8 +715,8 @@ void USBHost::ResetPort(uint32_t parent, uint32_t port) {
         a.bmHub = 0;
         a.bmParent = parent;
         a.bmAddress = port;
-		for (uint8_t i = 0; i < USB_NUMDEVICES; i++) {
-			if (devConfig[i] && devConfig[i]->GetAddress() == a.devAddress) {
+        for (uint8_t i = 0; i < USB_NUMDEVICES; i++) {
+            if (devConfig[i] && devConfig[i]->GetAddress() == a.devAddress) {
                 devConfig[i]->Release();
             }
         }
