@@ -697,7 +697,7 @@ void USBHost::ResetPort(uint32_t parent, uint32_t port) {
         //regWr(rHCTL, bmBUSRST); //issue bus reset
         UHD_BusReset();
         delay(102); // delay 102ms, compensate for clock inaccuracy.
-	} else {
+    } else {
         uint32_t rcode = USB_ERROR_ADDRESS_NOT_FOUND_IN_POOL;
         for (uint8_t i = 0; i < USB_NUMDEVICES; i++) { 
             if (devConfig[i] && devConfig[i]->GetAddress() == parent) {

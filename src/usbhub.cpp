@@ -380,9 +380,9 @@ uint32_t USBHub::PortStatusChange(uint32_t port, HubEvent &evt) {
                         ClearPortFeature(HUB_FEATURE_C_PORT_RESET, port, 0);
                         ClearPortFeature(HUB_FEATURE_C_PORT_CONNECTION, port, 0);
 
-                        USBTRACE("Hub port reset complete\r\n");
-
                         delay(20);
+
+                        USBTRACE("Hub port reset complete\r\n");
 
                         pUsb->Configuring(bAddress, port, (evt.bmStatus & bmHUB_PORT_STATUS_PORT_LOW_SPEED));
                         bResetInitiated = false;
